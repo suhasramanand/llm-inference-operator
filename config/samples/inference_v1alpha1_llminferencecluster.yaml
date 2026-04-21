@@ -1,0 +1,33 @@
+apiVersion: inference.llm.io/v1alpha1
+kind: LLMInferenceCluster
+metadata:
+  labels:
+    app.kubernetes.io/name: llm-inference-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: llminferencecluster-sample
+spec:
+  model:
+    name: mock-llama3
+    image: llm-inference-mock-worker:latest
+  runtime:
+    prefill:
+      replicas: 1
+      servicePort: 8001
+    decode:
+      replicas: 2
+      servicePort: 8000
+  kvCache:
+    strategy: sharded
+    numShards: 8
+    evictionPolicy: lru
+    warmCache: none
+  routing:
+    mode: sessionAffinity
+    hashKey: conversationId
+    routerReplicas: 1
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 5
+    signals:
+      source: fake
